@@ -1,15 +1,11 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState, useContext } from "react";
 import styles from "./styles.module.scss";
-
-interface Task {
-  id: number;
-  title: string;
-  done: boolean;
-}
+import { TasksContext } from "../../context/TasksContext";
 
 export const Tasks: React.FC = () => {
   const [taskTitle, setTaskTitle] = useState("");
-  const [tasks, setTasks] = useState([] as Task[]);
+
+  const { tasks, setTasks } = useContext(TasksContext);
 
   // função para adicionar tarefa
   function handleSubmitAddTask(event: FormEvent) {
@@ -32,14 +28,22 @@ export const Tasks: React.FC = () => {
     setTaskTitle(""); //limpa o campo de texto
   }
 
-  // função para carregar tarefas do localStorage
-  useEffect(() => {
-    const tasksOnLocalStorage = localStorage.getItem("tasks");
+  function handleToggleTaskStatus(taskId: number) {
+    const newTasks = tasks.map((task) => {
+      if (taskId === task.id) {
+        return {
+          ...task,
+          done: !task.done,
+        };
+      }
+      return task;
+    });
 
-    if (tasksOnLocalStorage) {
-      setTasks(JSON.parse(tasksOnLocalStorage));
-    }
-  }, []);
+    setTasks(newTasks);
+  }
+
+  // Utilizar o filter para remover a tarefa do array de tarefas
+  function handleRemoveTask(taskId: string) {}
 
   return (
     <section className={styles.container}>
@@ -62,8 +66,17 @@ export const Tasks: React.FC = () => {
         {tasks.map((task) => {
           return (
             <li key={task.id}>
-              <input type="checkbox" id={`task-${task.id}`} />
-              <label htmlFor={`task-${task.id}`}>{task.title}</label>
+              <input
+                type="checkbox"
+                id={`task-${task.id}`}
+                onChange={() => handleToggleTaskStatus(task.id)}
+              />
+              <label
+                className={task.done ? styles.done : ""}
+                htmlFor={`task-${task.id}`}
+              >
+                {task.title}
+              </label>
             </li>
           );
         })}
